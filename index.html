@@ -485,7 +485,7 @@
           try {
             const dataA = legacyA ? JSON.parse(legacyA) : null;
             const dataB = legacyB ? JSON.parse(legacyB) : null;
-            
+
             setRostersByYear(prev => {
               const updated = { ...prev };
               if (!updated['114']) updated['114'] = { A: [], B: [] };
@@ -501,6 +501,23 @@
             console.error("Migration failed", e);
           }
         }
+      }, []);
+
+      // --- 從 GitHub 同資料夾載入 data.json（讓所有訪問者看到同一份資料）---
+      // 部署後上傳備份 JSON 並命名為 data.json，公開頁就會自動同步
+      // 如要改路徑，調整下面這行即可
+      useEffect(() => {
+        fetch('./data.json?t=' + Date.now(), { cache: 'no-cache' })
+          .then(r => r.ok ? r.json() : null)
+          .then(data => {
+            if (!data) return;
+            if (data.matches) setMatches(data.matches);
+            if (data.academicYears) setAcademicYears(data.academicYears);
+            if (data.activeYear) setActiveYear(data.activeYear);
+            if (data.rostersByYear) setRostersByYear(data.rostersByYear);
+            if (data.setupForm) setSetupForm(data.setupForm);
+          })
+          .catch(() => { /* 無 data.json 或網路錯誤就用 localStorage */ });
       }, []);
 
       // --- 比賽資料學年度補齊 (針對舊資料) ---
